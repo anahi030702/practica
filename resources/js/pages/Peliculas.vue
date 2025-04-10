@@ -16,6 +16,9 @@ const inputSinopsis = ref('');
 
 const busquedas = ref([]);
 const links = ref([]);
+const from = ref(0);
+const to = ref(0);
+const total = ref(0);
 
 const searchMovies = async () => {
     const response = await axios.get("http://www.omdbapi.com/?apikey=99e2c578&t=" + busqueda.value);
@@ -51,12 +54,6 @@ const ordenar = async (columna) => {
     busquedas.value = response.data.busquedas;
 }
 
-const getData = async() => {
-    const response = await axios.get('peliculas/all');
-    busquedas.value = response.data.busquedas.data;
-    console.log(response.data.busquedas.links);
-    links.value = response.data.busquedas.links;
-}
 
 watch(inputNombre, async (newValor) => {
     busquedaPorColumna('nombre', newValor);
@@ -96,22 +93,29 @@ const busquedaPorColumna = async (columna, valor) => {
     busquedas.value = respuesta.data.busquedas;
 }
 
+    // Función para obtener los datos de la API
+    const fetchBusquedas = (url) => {
+      axios.get(url).then((response) => {
+        busquedas.value= response.data.busquedas.data;
+        from.value = response.data.busquedas.from;
+        to.value = response.data.busquedas.to;
+        total.value = response.data.busquedas.total;
+        links.value = response.data.busquedas.links;
+      });
+    };
+
+const changePage = (url) => {
+      fetchBusquedas(url); // Cambia la página cargando los datos de esa URL
+    };
+
 onMounted(() => {
-    getData();
+    fetchBusquedas('/peliculas/all'); // Ajusta la URL de la API si es necesario
 });
 </script>
 
 <template>
     <Head title="Buscador de peliculas" />
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
-    </head>
-    <body class="container">
+    <div class="container">
         <h1>BUSCA TU PELICULA FAVORITA</h1><br><br>
 
         <form class="row g-3" >
@@ -185,50 +189,26 @@ onMounted(() => {
             </tbody>
         </table>
 
-        <!-- Paginación -->
-    <nav aria-label="Page navigation example">
-      <ul class="pagination">
-        <!-- Previous Button -->
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-
-        <!-- Páginas -->
-        <li
-          v-for="page in totalPages"
-          :key="page"
-          class="page-item"
-          :class="{ active: page === currentPage }"
-        >
-          <a class="page-link" href="#" @click.prevent="changePage(page)">
-            {{ page }}
-          </a>
-        </li>
-
-        <!-- Next Button -->
-        <li class="page-item" :class="{ disabled: currentPage === lastPage }">
-          <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)" aria-label="Next">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li>Mostrando del {{ from }} al {{ to }} de un total de {{ total }}</li><br>
+                <li v-for="link in links" :key="link.label" class="page-item" :class="{ active: link.active }">
+                    <a class="page-link" href="#" @click.prevent="changePage(link.url)">{{ link.label }}</a>
+                </li>
+            </ul>
+        </nav>
 
         
-    </body>
-    </html>
+    </div>
   
 
 </template>
 
 <style>
-body{
-    text-align: center;
-    margin-top: 3%;
-    background-color: white;
-    text-align: center;
+.container {
+  background-color: white; /* O el color que desees */
+  color: black; /* Asegúrate de que el texto también sea legible */
+  height: 950px;
 }
 
 button{

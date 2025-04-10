@@ -6,6 +6,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Importa los estilos de Bootstrap
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
